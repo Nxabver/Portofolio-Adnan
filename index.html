@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Verifikasi & Keuangan Toko - Black Gold Edition</title>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --card-bg: #141418;
+            --card-border: #2a2a32;
+            --gold-primary: #d4af37;
+            --gold-light: #fdf0a6;
+            --gold-gradient: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --gold-glow: rgba(212, 175, 55, 0.2);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: var(--text-main); 
+            padding: 0 15px 15px 15px; 
+            margin: 0; 
+            min-height: 100vh; 
+        }
+
+        .container { max-width: 650px; margin: 0 auto; }
+
+        .top-bar {
+            text-align: center;
+            padding: 15px 10px;
+            background: #0a0a0c;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 20px;
+        }
+
+        .top-bar-title {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .top-bar-quote {
+            font-size: 12px;
+            color: var(--gold-light);
+            margin-top: 4px;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        .gold-text {
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .header-card {
+            background: var(--card-bg);
+            border: 1px solid var(--gold-primary);
+            box-shadow: 0 0 15px var(--gold-glow);
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .saldo-box {
+            background: linear-gradient(135deg, rgba(212,175,55,0.15) 0%, rgba(20,20,24,1) 100%);
+            border: 1px solid var(--gold-primary);
+            box-shadow: 0 0 12px var(--gold-glow);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border);
+            border-radius: 16px; 
+            padding: 20px; 
+            margin-bottom: 16px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .form-group { margin-bottom: 14px; }
+        label { font-weight: 600; display: block; margin-bottom: 6px; font-size: 13px; color: var(--gold-light); }
+        
+        input[type="text"], input[type="number"], input[type="date"], input[type="password"], input[type="tel"], select { 
+            width: 100%; padding: 12px; border: 1px solid var(--card-border); border-radius: 10px; 
+            font-size: 14px; outline: none; transition: 0.2s; background: #09090b; color: #fff;
+        }
+        input:focus, select:focus { border-color: var(--gold-primary); box-shadow: 0 0 8px var(--gold-glow); }
+        input:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; background: #1a1a1f; }
+
+        .btn { 
+            padding: 12px 18px; border: none; border-radius: 10px; font-weight: 700; 
+            cursor: pointer; transition: 0.3s; display: inline-flex; align-items: center; 
+            justify-content: center; gap: 8px; font-size: 13px; text-transform: uppercase;
+        }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; filter: grayscale(90%); }
+        .btn-block { width: 100%; }
+        .btn-gold { background: var(--gold-gradient); color: #000; box-shadow: 0 4px 15px var(--gold-glow); }
+        .btn-outline-gold { background: transparent; border: 1px solid var(--gold-primary); color: var(--gold-light); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+
+        #scanner-container { display: none; margin-bottom: 15px; border-radius: 12px; overflow: hidden; border: 2px solid var(--gold-primary); background: #000; }
+        #reader { width: 100%; }
+
+        .item-card {
+            border-radius: 12px;
+            padding: 14px; margin-bottom: 12px; position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .card-new-order {
+            background: #111115;
+            border: 1px solid #2d2d38;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+        }
+
+        .card-resi-scanned {
+            background: #091a2e;
+            border: 1px solid #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .card-aman {
+            background: #062c19;
+            border: 1px solid #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .card-return {
+            background: #2d0606;
+            border: 1px solid #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .card-sold {
+            background: linear-gradient(180deg, #18150c 0%, #0d0c07 100%);
+            border: 1px solid var(--gold-primary);
+            opacity: 0.85;
+        }
+
+        .card-kebutuhan {
+            background: #1c1917;
+            border: 1px solid #78350f;
+            box-shadow: 0 0 10px rgba(180, 83, 9, 0.2);
+        }
+
+        .code-number { font-family: 'Courier New', monospace; font-size: 16px; font-weight: 700; color: var(--gold-light); }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-block; }
+        .badge-new { background: #1f1f28; color: #9ca3af; border: 1px solid #4b5563; }
+        .badge-scanned { background: #075985; color: #38bdf8; border: 1px solid #0284c7; }
+        .badge-aman { background: #064e3b; color: #6ee7b7; border: 1px solid var(--success); }
+        .badge-return { background: #7f1d1d; color: #fca5a5; border: 1px solid var(--danger); }
+        .badge-sold { background: #451a03; color: var(--gold-light); border: 1px solid var(--gold-primary); }
+        .badge-kebutuhan { background: #451a03; color: #fcd34d; border: 1px solid #b45309; }
+
+        .summary-box {
+            background: linear-gradient(180deg, rgba(212,175,55,0.08) 0%, rgba(20,20,24,1) 100%);
+            border: 1px solid var(--gold-primary);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+        .summary-total { border-top: 1px dashed var(--gold-primary); padding-top: 10px; margin-top: 10px; font-weight: 800; font-size: 15px; }
+
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 999;
+            align-items: center; justify-content: center; padding: 15px;
+        }
+        .modal-content {
+            background: var(--card-bg); border: 1px solid var(--gold-primary); border-radius: 16px;
+            padding: 20px; width: 100%; max-width: 480px; box-shadow: 0 0 25px var(--gold-glow);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        .calc-box {
+            background: #0d0d11;
+            border: 1px solid var(--gold-glow);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--card-border); font-size: 13px; }
+        .detail-label { color: var(--text-muted); }
+        .detail-value { font-weight: 600; color: #fff; }
+
+        .alert-box { padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700; margin-bottom: 12px; display: none; text-align: center; }
+        .alert-error { background: #450a0a; color: #fca5a5; border: 1px solid var(--danger); }
+
+        .log-item {
+            font-size: 12px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-credit {
+            text-align: center; font-size: 10px; color: var(--text-muted); margin-top: 25px; margin-bottom: 10px; letter-spacing: 1px; opacity: 0.6;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;" oncopy="return false;" oncut="return false;">
+
+<div class="container">
+    <div class="top-bar">
+        <h1 class="top-bar-title gold-text">RESI PRO</h1>
+        <div class="top-bar-quote">✨ "Semangat! Setiap transaksi adalah langkah menuju sukses." ✨</div>
+    </div>
+
+    <div class="header-card">
+        <h2 class="gold-text" style="margin:0; font-size: 20px;">⚜️ VERIFIKASI RESI & KEUANGAN TOKO</h2>
+    </div>
+
+    <div class="saldo-box">
+        <div>
+            <div style="font-size: 11px; color: var(--gold-light); font-weight: 700;">💰 SALDO KAS TOKO</div>
+            <div id="displaySaldoToko" style="font-size: 20px; font-weight: 800; color: #fff;">Rp 0</div>
+        </div>
+        <button class="btn btn-outline-gold" style="padding: 6px 12px; font-size: 11px;" onclick="requestSaldoPinAuth()">
+            ⚙️ Atur / Top Up Saldo
+        </button>
+    </div>
+
+    <div id="page1">
+        <div class="card">
+            <h3 style="margin-top:0;" class="gold-text">📷 Scan Resi Kamera</h3>
+            <button class="btn btn-outline-gold btn-block" onclick="toggleCamera()">
+                <span id="camBtnText">Buka Kamera Scan</span>
+            </button>
+            <div id="scanner-container" style="margin-top: 10px;">
+                <div id="reader"></div>
+            </div>
+            <div id="scanAlert" class="alert-box alert-error"></div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0;" class="gold-text">🔍 Cek Manual (No Resi / No Pemesanan)</h3>
+            <div class="form-group">
+                <label>MASUKKAN NO RESI ATAU NO PEMESANAN</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="manualInput" placeholder="Contoh: JP84729384 atau 47283674" onkeypress="if(event.key==='Enter') processManualCheck()">
+                    <button class="btn btn-gold" onclick="processManualCheck()">Cek</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0;" class="gold-text">📝 Tambah Pembelian Barang</h3>
+
+            <div class="form-group">
+                <label>TIPE PEMBELIAN *</label>
+                <select id="inputTipe">
+                    <option value="dagangan">📦 Barang Dagangan (Untuk Dijual Kembali)</option>
+                    <option value="kebutuhan">🧹 Barang Kebutuhan Toko (Pengeluaran / Non-Jual)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>NAMA BARANG *</label>
+                <input type="text" id="inputNama" placeholder="Contoh: Lakban / Plastik / Kapal Api">
+            </div>
+
+            <div class="form-group">
+                <label>NO PEMESANAN / NO NOTA *</label>
+                <input type="text" id="inputNoPesanan" placeholder="Contoh: INV-8462572846">
+            </div>
+
+            <div class="form-group">
+                <label>TANGGAL PEMBELIAN *</label>
+                <input type="date" id="inputTanggal">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label>JUMLAH (KARTON/UNIT/PCS) *</label>
+                    <input type="number" id="inputQty" placeholder="Contoh: 1">
+                </div>
+                <div class="form-group">
+                    <label>TOTAL HARGA BELI (RP) *</label>
+                    <input type="number" id="inputTotalHarga" placeholder="Contoh: 1000000">
+                </div>
+            </div>
+
+            <p style="font-size: 11px; color: var(--warning); margin-top: -5px; margin-bottom: 12px;">
+                💡 *Setiap pembelian akan langsung memotong Saldo Kas. Jika Tipe "Kebutuhan Toko", barang tidak dapat dijual & dihitung sebagai pengeluaran operasional.
+            </p>
+
+            <button class="btn btn-gold btn-block" onclick="simpanPembelianBaru()">+ Simpan & Potong Saldo Kas</button>
+        </div>
+
+        <button class="btn btn-outline-gold btn-block" onclick="openPinAuthModal('page2')">
+            🔒 Kelola Kas & Pembukuan Toko (Halaman 2 - Terkunci)
+        </button>
+    </div>
+
+    <div id="page2" style="display: none;">
+        <div style="margin-bottom: 15px;">
+            <button class="btn btn-outline-gold btn-block" onclick="switchPage(1)">
+                ⬅️ Kembali Ke Terminal Scan (Halaman 1)
+            </button>
+        </div>
+
+        <div class="summary-box">
+            <div style="font-weight: 800; font-size: 14px; margin-bottom: 10px; color: var(--gold-light);">📊 REKAP KEUANGAN & PERPUTARAN KAS</div>
+            <div class="summary-row">
+                <span>Total Modal Beli Barang Dagangan:</span>
+                <span id="sumTotalModal" style="color: var(--danger);">Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Pengeluaran Kebutuhan Toko:</span>
+                <span id="sumTotalKebutuhan" style="color: #f59e0b;">Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Omset Penjualan (Kotor):</span>
+                <span id="sumTotalJual" style="color: #fff;">Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Total Biaya Ongkir:</span>
+                <span id="sumTotalOngkir" style="color: var(--danger);">Rp 0</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span class="gold-text">📈 TOTAL KEUNTUNGAN BERSIH TOKO:</span>
+                <span id="sumLabaBersih" style="color: var(--success); font-size: 16px;">Rp 0</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0;" class="gold-text">📦 Daftar Pembelian & Resi Terdaftar</h3>
+            
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>🔎 CARI DATA (NO RESI / NO PEMESANAN / NAMA BARANG)</label>
+                <input type="text" id="searchBar" placeholder="Ketik nomor resi atau nama..." oninput="renderDataList()">
+            </div>
+
+            <div id="dataListContainer"></div>
+        </div>
+    </div>
+
+    <div class="footer-credit">apk by xabver</div>
+</div>
+
+<!-- MODAL TOP UP SALDO -->
+<div id="saldoModal" class="modal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h3 class="gold-text" style="margin-top:0; text-align:center;">💰 KELOLA SALDO KAS TOKO</h3>
+        <div class="form-group">
+            <label>PILIH AKSI</label>
+            <select id="saldoMode">
+                <option value="add">Tambah Saldo Kas (Top Up / Modal Tambahan)</option>
+                <option value="set">Set Uang Kas Baru (Reset / Timpa Total)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>NOMINAL JUMLAH (RP)</label>
+            <input type="number" id="inputNominalSaldo" placeholder="Contoh: 20000">
+        </div>
+
+        <button class="btn btn-gold btn-block" onclick="eksekusiSaldoToko()">Simpan Saldo</button>
+        
+        <div style="margin-top: 15px; border-top: 1px dashed var(--card-border); padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 12px; color: var(--gold-light); margin: 0;">📋 RIWAYAT TOP UP SALDO KAS:</label>
+                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 10px; text-transform: none;" onclick="bersihkanRiwayatSaldo()">🗑️ Bersihkan Riwayat</button>
+            </div>
+            <div id="saldoLogContainer" style="max-height: 140px; overflow-y: auto; background: #000; border-radius: 8px; border: 1px solid var(--card-border); margin-top: 5px;"></div>
+        </div>
+
+        <button class="btn btn-outline-gold btn-block" style="margin-top: 12px;" onclick="closeSaldoModal()">Tutup</button>
+    </div>
+</div>
+
+<!-- MODAL AUTH PIN -->
+<div id="pinModal" class="modal">
+    <div class="modal-content" style="max-width: 350px;">
+        <h3 class="gold-text" style="margin-top:0; text-align:center;">🔑 PIN AKSES KHUSUS</h3>
+        <p id="pinModalSubtext" style="font-size: 12px; color: var(--text-muted); text-align:center;">Masukkan PIN Akses (Angka)</p>
+        <div class="form-group">
+            <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="10" style="text-align:center; font-size: 20px; letter-spacing: 5px;" placeholder="******" oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeypress="if(event.key==='Enter') verifyPin()">
+        </div>
+        <button class="btn btn-gold btn-block" onclick="verifyPin()">Masuk / Verifikasi</button>
+        <button class="btn btn-outline-gold btn-block" style="margin-top: 8px;" onclick="closePinModal()">Batal</button>
+    </div>
+</div>
+
+<!-- MODAL INPUT RESI -->
+<div id="addResiModal" class="modal">
+    <div class="modal-content" style="max-width: 420px;">
+        <h3 class="gold-text" style="margin-top:0; text-align:center;">✅ NO PEMESANAN TERDETEKSI!</h3>
+        
+        <div class="calc-box" style="margin-bottom: 12px;">
+            <div class="detail-row"><span class="detail-label">No Pemesanan:</span> <span class="detail-value" id="detectNoPesanan">-</span></div>
+            <div class="detail-row"><span class="detail-label">Nama Barang:</span> <span class="detail-value" id="detectNamaBarang">-</span></div>
+            <div class="detail-row"><span class="detail-label">Tipe Pembelian:</span> <span class="detail-value" id="detectTipeBarang">-</span></div>
+            <div class="detail-row"><span class="detail-label">Jumlah / Total Beli:</span> <span class="detail-value" id="detectQtyHarga">-</span></div>
+        </div>
+
+        <div class="form-group">
+            <label>MASUKKAN NO RESI (PERMANEN)</label>
+            <input type="text" id="inputResiPermanen" placeholder="Masukkan nomor resi alfanumerik...">
+        </div>
+
+        <p id="resiLockWarning" style="font-size: 11px; color: var(--warning); text-align: center; margin-top: -5px;">
+            ⚠️ Perhatian: Setelah disimpan, Nomor Resi bersifat PERMANEN dan tidak dapat diubah lagi!
+        </p>
+
+        <button id="btnSimpanResiPermanen" class="btn btn-gold btn-block" onclick="simpanResiPermanen()">🔒 Simpan & Kunci Resi</button>
+        <button class="btn btn-outline-gold btn-block" style="margin-top: 8px;" onclick="closeAddResiModal()">Tutup</button>
+    </div>
+</div>
+
+<!-- MODAL DETAIL RESI -->
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <h3 class="gold-text" style="margin-top: 0; text-align: center;">DETAIL VERIFIKASI RESI</h3>
+        <p style="text-align: center; margin-top: -10px;" class="code-number" id="modalResiNum">-</p>
+
+        <div class="detail-row"><span class="detail-label">Tipe Pembelian:</span> <span class="detail-value" id="modalTipe">-</span></div>
+        <div class="detail-row"><span class="detail-label">No Pemesanan:</span> <span class="detail-value" id="modalNoPesanan">-</span></div>
+        <div class="detail-row"><span class="detail-label">Nama Barang:</span> <span class="detail-value" id="modalNama">-</span></div>
+        <div class="detail-row"><span class="detail-label">Tanggal Pembelian:</span> <span class="detail-value" id="modalTanggal">-</span></div>
+        <div class="detail-row"><span class="detail-label">Jumlah Barang:</span> <span class="detail-value" id="modalJumlah">-</span></div>
+        <div class="detail-row"><span class="detail-label">Total Beli / Pengeluaran:</span> <span class="detail-value" id="modalHarga" style="color: var(--gold-light);">-</span></div>
+        <div class="detail-row"><span class="detail-label">Status Verifikasi:</span> <span class="detail-value" id="modalStatus">-</span></div>
+
+        <div id="detailPenjualanContainer" class="calc-box" style="display: none; margin-top: 15px; border-color: var(--gold-primary);">
+            <div style="font-weight: 800; font-size: 13px; color: var(--gold-light); margin-bottom: 8px; text-align: center;">
+                💰 RINCIAN HASIL PENJUALAN
+            </div>
+            <div class="detail-row"><span class="detail-label">Harga Jual / Unit:</span> <span class="detail-value" id="modalHargaJualUnit">-</span></div>
+            <div class="detail-row"><span class="detail-label">Total Omset (Kotor):</span> <span class="detail-value" id="modalTotalJual" style="color: #fff;">-</span></div>
+            <div class="detail-row"><span class="detail-label">Potongan Ongkir:</span> <span class="detail-value" id="modalOngkir" style="color: var(--danger);">-</span></div>
+            <div class="detail-row"><span class="detail-label">Kas Masuk (Bersih):</span> <span class="detail-value" id="modalKasBersih" style="color: var(--success);">-</span></div>
+            <div class="detail-row" style="border-top: 1px dashed var(--gold-primary); margin-top: 5px; padding-top: 8px;">
+                <span class="detail-label" style="font-weight: 800; color: var(--gold-light);">📈 Keuntungan Bersih:</span>
+                <span class="detail-value" id="modalLabaBersih" style="font-weight: 800; color: var(--success); font-size: 15px;">-</span>
+            </div>
+        </div>
+
+        <div id="statusChangeNotice" style="font-size: 11px; color: var(--warning); text-align: center; margin-top: 10px; background: rgba(245, 158, 11, 0.1); padding: 8px; border-radius: 8px; border: 1px dashed var(--warning); display: none;">
+            🔒 Perubahan status hanya dapat dilakukan di Halaman 2 (Terkunci PIN).
+        </div>
+
+        <div id="statusActionButtons" style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button id="btnAman" class="btn btn-success" onclick="updateStatusVerifikasi('Aman')">✅ Aman / Sesuai</button>
+            <button id="btnReturn" class="btn btn-danger" onclick="updateStatusVerifikasi('Return')">❌ Return (Bermasalah)</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <button id="btnHapusPage2Only" class="btn btn-danger" style="background: #450a0a; border: 1px solid var(--danger);" onclick="hapusDataPemesanan()">🗑️ Hapus Data</button>
+            <button class="btn btn-outline-gold" onclick="closeDetailModal()">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PROSES PENJUALAN -->
+<div id="jualModal" class="modal">
+    <div class="modal-content">
+        <h3 class="gold-text" style="margin-top: 0; text-align: center;">💰 PROSES PENJUALAN TOKO</h3>
+        
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">
+            <div>No Pemesanan: <b id="jualNoPesanan" style="color: #fff;">-</b></div>
+            <div>Barang: <b id="jualNamaBarang" style="color: #fff;">-</b> (<span id="jualQty">-</span> Karton)</div>
+            <div>Modal Beli: <b id="jualTotalBeliText" style="color: var(--gold-light);">Rp 0</b></div>
+        </div>
+
+        <div class="form-group">
+            <label>HARGA JUAL PER KARTON (RP)</label>
+            <input type="number" id="jualHargaUnit" placeholder="200000" oninput="hitungKalkulasiKeuntungan()">
+        </div>
+
+        <div class="form-group">
+            <label>POTONGAN ONGKIR (RP / PESANAN)</label>
+            <input type="number" id="jualOngkir" placeholder="10000" value="10000" oninput="hitungKalkulasiKeuntungan()">
+        </div>
+
+        <div class="calc-box">
+            <div class="summary-row">
+                <span>Total Omset Penjualan (Kotor):</span>
+                <span id="calcTotalJual" style="font-weight: 700; color: #fff;">+ Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Potongan Ongkir:</span>
+                <span id="calcOngkir" style="color: var(--danger);"> - Rp 0</span>
+            </div>
+            <div class="summary-row" style="border-top: 1px dashed var(--card-border); padding-top: 5px;">
+                <span>Bersih Masuk Kas Toko:</span>
+                <span id="calcPenjualanBersih" style="font-weight: 700; color: var(--success);">+ Rp 0</span>
+            </div>
+            <div class="summary-row">
+                <span>Modal Beli Barang:</span>
+                <span id="calcModalBeli" style="color: var(--danger);"> - Rp 0</span>
+            </div>
+            <div class="summary-row summary-total" style="margin-top: 8px; background: rgba(16, 185, 129, 0.15); padding: 8px; border-radius: 8px;">
+                <span style="font-weight: 800; color: var(--gold-light);">➕ ESTIMASI KEUNTUNGAN BERSIH:</span>
+                <span id="calcLabaBersih" style="font-weight: 800; color: var(--success); font-size: 16px;">Rp 0</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button class="btn btn-success" onclick="simpanPenjualan()">✅ Simpan Terjual</button>
+            <button class="btn btn-outline-gold" onclick="closeJualModal()">Batal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let dbOrders = JSON.parse(localStorage.getItem('dbResiTokoSoloMaster')) || [];
+    let saldoToko = parseFloat(localStorage.getItem('dbSaldoTokoKas')) || 0;
+    let saldoLogs = JSON.parse(localStorage.getItem('dbSaldoLogsMaster')) || [];
+
+    let selectedIndex = null;
+    let html5QrCode = null;
+    let isCameraActive = false;
+    let currentPage = 1;
+    let currentAuthAction = 'page2';
+
+    const PAGE2_PIN = "271406"; 
+    const SALDO_PIN = "271406"; 
+
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSuccessSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    function playErrorSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(130, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+    }
+
+    document.getElementById('inputTanggal').valueAsDate = new Date();
+
+    function saveData() {
+        localStorage.setItem('dbResiTokoSoloMaster', JSON.stringify(dbOrders));
+        localStorage.setItem('dbSaldoTokoKas', saldoToko.toString());
+        localStorage.setItem('dbSaldoLogsMaster', JSON.stringify(saldoLogs));
+        updateSaldoDisplay();
+    }
+
+    function updateSaldoDisplay() {
+        document.getElementById('displaySaldoToko').textContent = formatRupiah(saldoToko);
+    }
+
+    function formatRupiah(angka) {
+        return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(angka || 0);
+    }
+
+    function isOnlyNumbers(str) {
+        return /^\d+$/.test(str);
+    }
+
+    function requestSaldoPinAuth() {
+        openPinAuthModal('saldo');
+    }
+
+    function openSaldoModal() {
+        document.getElementById('inputNominalSaldo').value = '';
+        renderSaldoLogs();
+        document.getElementById('saldoModal').style.display = 'flex';
+    }
+
+    function closeSaldoModal() {
+        document.getElementById('saldoModal').style.display = 'none';
+    }
+
+    function eksekusiSaldoToko() {
+        const mode = document.getElementById('saldoMode').value;
+        const nominal = parseFloat(document.getElementById('inputNominalSaldo').value) || 0;
+
+        if (nominal <= 0) {
+            playErrorSound();
+            alert('❌ Masukkan nominal saldo yang valid!');
+            return;
+        }
+
+        const now = new Date();
+        const timeFormatted = `${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'})}`;
+
+        if (mode === 'set') {
+            saldoToko = nominal;
+        } else {
+            saldoToko += nominal;
+            saldoLogs.unshift({
+                waktu: timeFormatted,
+                nominal: nominal
+            });
+        }
+
+        saveData();
+        playSuccessSound();
+        renderSaldoLogs();
+        if (currentPage === 2) renderDataList();
+        alert(`💰 Saldo Kas Toko berhasil diperbarui!\nNominal: ${formatRupiah(nominal)}`);
+        document.getElementById('inputNominalSaldo').value = '';
+    }
+
+    function renderSaldoLogs() {
+        const logBox = document.getElementById('saldoLogContainer');
+        logBox.innerHTML = '';
+
+        if (saldoLogs.length === 0) {
+            logBox.innerHTML = '<div style="font-size:11px; color:var(--text-muted); padding:8px; text-align:center;">Belum ada riwayat top up.</div>';
+            return;
+        }
+
+        saldoLogs.forEach(log => {
+            logBox.innerHTML += `
+                <div class="log-item">
+                    <div style="font-weight:700; color:var(--gold-light);">${log.waktu}</div>
+                    <div style="font-weight:800; color:var(--success);">
+                        + ${formatRupiah(log.nominal)}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function bersihkanRiwayatSaldo() {
+        if (saldoLogs.length === 0) {
+            alert('ℹ️ Riwayat top up sudah kosong.');
+            return;
+        }
+
+        if (confirm('Yakin ingin membersihkan seluruh riwayat top up saldo kas?')) {
+            saldoLogs = [];
+            saveData();
+            playSuccessSound();
+            renderSaldoLogs();
+            alert('🗑️ Riwayat top up saldo telah dibersihkan!');
+        }
+    }
+
+    function openPinAuthModal(targetAction) {
+        currentAuthAction = targetAction;
+        const pinInput = document.getElementById('pinInput');
+        pinInput.value = '';
+        
+        const subtext = document.getElementById('pinModalSubtext');
+        if (targetAction === 'saldo') {
+            subtext.textContent = "Masukkan PIN Angka Top Up Saldo Kas";
+        } else {
+            subtext.textContent = "Masukkan PIN Angka Halaman 2";
+        }
+
+        document.getElementById('pinModal').style.display = 'flex';
+        setTimeout(() => pinInput.focus(), 100);
+    }
+
+    function closePinModal() {
+        document.getElementById('pinModal').style.display = 'none';
+    }
+
+    function verifyPin() {
+        const inputPin = document.getElementById('pinInput').value.trim();
+
+        if (!isOnlyNumbers(inputPin)) {
+            playErrorSound();
+            alert('❌ PIN HANYA BOLEH BERUPA ANGKA!');
+            return;
+        }
+
+        if (currentAuthAction === 'saldo') {
+            if (inputPin === SALDO_PIN) {
+                closePinModal();
+                playSuccessSound();
+                openSaldoModal();
+            } else {
+                playErrorSound();
+                alert('❌ PIN TOP UP SALDO SALAH! Akses ditolak.');
+            }
+        } else {
+            if (inputPin === PAGE2_PIN) {
+                closePinModal();
+                playSuccessSound();
+                switchPage(2);
+            } else {
+                playErrorSound();
+                alert('❌ PIN HALAMAN 2 SALAH! Akses ditolak.');
+            }
+        }
+    }
+
+    function switchPage(pageNum) {
+        currentPage = pageNum;
+        if (pageNum === 1) {
+            document.getElementById('page1').style.display = 'block';
+            document.getElementById('page2').style.display = 'none';
+        } else {
+            stopCamera();
+            document.getElementById('page1').style.display = 'none';
+            document.getElementById('page2').style.display = 'block';
+            renderDataList();
+        }
+    }
+
+    function simpanPembelianBaru() {
+        const tipeVal = document.getElementById('inputTipe').value;
+        const nama = document.getElementById('inputNama').value.trim();
+        const noPesanan = document.getElementById('inputNoPesanan').value.trim();
+        const tanggal = document.getElementById('inputTanggal').value.trim();
+        const qtyRaw = document.getElementById('inputQty').value.trim();
+        const totalHargaRaw = document.getElementById('inputTotalHarga').value.trim();
+
+        if (!nama || !noPesanan || !tanggal || !qtyRaw || !totalHargaRaw) {
+            playErrorSound();
+            alert('❌ PERINGATAN: Semua kolom WAJIB DIISI!');
+            return;
+        }
+
+        const qty = parseInt(qtyRaw);
+        const totalHarga = parseFloat(totalHargaRaw);
+
+        if (isNaN(qty) || qty <= 0 || isNaN(totalHarga) || totalHarga <= 0) {
+            playErrorSound();
+            alert('❌ Jumlah dan Total Harga Beli harus berupa angka lebih dari 0!');
+            return;
+        }
+
+        if (totalHarga > saldoToko) {
+            playErrorSound();
+            alert(`⚠️ PEMBELIAN DITOLAK! Saldo Kas Toko Tidak Cukup.\n\nRequired Beli: ${formatRupiah(totalHarga)}\nSaldo Kas Saat Ini: ${formatRupiah(saldoToko)}\n\nSilakan Atur / Top Up Saldo Kas terlebih dahulu!`);
+            return;
+        }
+
+        if (dbOrders.some(item => item.noPesanan === noPesanan)) {
+            playErrorSound();
+            alert('⚠️ No Pemesanan ini sudah terdaftar sebelumnya!');
+            return;
+        }
+
+        saldoToko -= totalHarga;
+
+        dbOrders.unshift({
+            id: Date.now(),
+            nama: nama,
+            noPesanan: noPesanan,
+            tanggal: tanggal,
+            qty: qty,
+            totalHargaBeli: totalHarga,
+            tipe: tipeVal,
+            resi: '',
+            resiLocked: false,
+            statusVerifikasi: 'Belum Diperiksa',
+            isScanned: false,
+            isSold: false,
+            hargaJualUnit: 0,
+            totalJual: 0,
+            ongkir: 0,
+            labaBersih: 0
+        });
+
+        saveData();
+        playSuccessSound();
+        
+        const labelTipe = tipeVal === 'kebutuhan' ? 'Barang Kebutuhan (Operasional)' : 'Barang Dagangan';
+        alert(`✅ Pembelian ${labelTipe} berhasil disimpan!\n💸 Saldo Kas Toko terpotong: ${formatRupiah(totalHarga)}`);
+
+        document.getElementById('inputNama').value = '';
+        document.getElementById('inputNoPesanan').value = '';
+        document.getElementById('inputTanggal').valueAsDate = new Date();
+        document.getElementById('inputQty').value = '';
+        document.getElementById('inputTotalHarga').value = '';
+    }
+
+    function processManualCheck() {
+        const val = document.getElementById('manualInput').value.trim();
+        if(!val) return;
+
+        const indexPesanan = dbOrders.findIndex(item => item.noPesanan.toLowerCase() === val.toLowerCase());
+        if (indexPesanan !== -1) {
+            playSuccessSound();
+            openAddResiModal(indexPesanan);
+            document.getElementById('manualInput').value = '';
+            return;
+        }
+
+        handleScanResult(val);
+        document.getElementById('manualInput').value = '';
+    }
+
+    function openAddResiModal(index) {
+        selectedIndex = index;
+        const item = dbOrders[index];
+
+        document.getElementById('detectNoPesanan').textContent = item.noPesanan;
+        document.getElementById('detectNamaBarang').textContent = item.nama;
+        document.getElementById('detectTipeBarang').textContent = (item.tipe === 'kebutuhan') ? '🧹 Kebutuhan Toko (Non-Jual)' : '📦 Barang Dagangan';
+        document.getElementById('detectQtyHarga').textContent = `${item.qty} Unit / ${formatRupiah(item.totalHargaBeli)}`;
+        
+        const resiInput = document.getElementById('inputResiPermanen');
+        const btnSimpan = document.getElementById('btnSimpanResiPermanen');
+        const warningTxt = document.getElementById('resiLockWarning');
+
+        resiInput.value = item.resi || '';
+
+        if (item.resiLocked || item.resi) {
+            resiInput.disabled = true;
+            btnSimpan.disabled = true;
+            warningTxt.style.color = "var(--danger)";
+            warningTxt.innerHTML = "🔒 <b>NOMOR RESI SUDAH TERKUNCI PERMANEN!</b><br>Tidak dapat diubah lagi.";
+        } else {
+            resiInput.disabled = false;
+            btnSimpan.disabled = false;
+            warningTxt.style.color = "var(--warning)";
+            warningTxt.innerHTML = "⚠️ Perhatian: Setelah disimpan, Nomor Resi bersifat PERMANEN dan tidak dapat diubah lagi!";
+        }
+
+        document.getElementById('addResiModal').style.display = 'flex';
+    }
+
+    function closeAddResiModal() {
+        document.getElementById('addResiModal').style.display = 'none';
+        selectedIndex = null;
+    }
+
+    function simpanResiPermanen() {
+        const resiVal = document.getElementById('inputResiPermanen').value.trim();
+
+        if (!resiVal) {
+            alert('❌ RESI TIDAK VALID! Nomor resi tidak boleh kosong.');
+            return;
+        }
+
+        if (dbOrders.some((item, idx) => item.resi.toLowerCase() === resiVal.toLowerCase() && idx !== selectedIndex)) {
+            alert('⚠️ Nomor resi ini sudah terpakai di pesanan lain!');
+            return;
+        }
+
+        if (selectedIndex !== null) {
+            dbOrders[selectedIndex].resi = resiVal;
+            dbOrders[selectedIndex].resiLocked = true;
+            dbOrders[selectedIndex].isScanned = false;
+            saveData();
+            playSuccessSound();
+            alert('🔒 Nomor resi berhasil disimpan!');
+            closeAddResiModal();
+        }
+    }
+
+    function handleScanResult(scannedResi) {
+        if (!scannedResi) return;
+
+        const index = dbOrders.findIndex(item => item.resi.toLowerCase() === scannedResi.toLowerCase());
+
+        if (index === -1) {
+            playErrorSound();
+            showScanError(`❌ Resi ${scannedResi} Belum Terdaftar!`);
+            return;
+        }
+
+        dbOrders[index].isScanned = true;
+        saveData();
+
+        playSuccessSound();
+        stopCamera();
+        bukaDetailVerifikasi(index, 1);
+    }
+
+    function bukaDetailVerifikasi(index, fromPage = currentPage) {
+        selectedIndex = index;
+        const item = dbOrders[index];
+
+        document.getElementById('modalResiNum').textContent = item.resi || 'BELUM ADA RESI';
+        document.getElementById('modalTipe').textContent = (item.tipe === 'kebutuhan') ? '🧹 Kebutuhan Toko (Pengeluaran)' : '📦 Barang Dagangan';
+        document.getElementById('modalNoPesanan').textContent = item.noPesanan;
+        document.getElementById('modalNama').textContent = item.nama;
+        document.getElementById('modalTanggal').textContent = item.tanggal;
+        document.getElementById('modalJumlah').textContent = item.qty + ' Unit/Pcs';
+        document.getElementById('modalHarga').textContent = formatRupiah(item.totalHargaBeli);
+        
+        let badgeClass = 'badge-scanned';
+        if (item.statusVerifikasi === 'Aman') badgeClass = 'badge-aman';
+        if (item.statusVerifikasi === 'Return') badgeClass = 'badge-return';
+
+        if (item.tipe === 'kebutuhan') {
+            document.getElementById('modalStatus').innerHTML = `<span class="badge badge-kebutuhan">🧹 Kebutuhan (Pengeluaran)</span>`;
+        } else if (item.isSold) {
+            document.getElementById('modalStatus').innerHTML = `<span class="badge badge-sold">🤝 Terjual</span>`;
+        } else {
+            document.getElementById('modalStatus').innerHTML = `<span class="badge ${badgeClass}">${item.statusVerifikasi}</span>`;
+        }
+
+        const boxJual = document.getElementById('detailPenjualanContainer');
+        if (item.isSold) {
+            document.getElementById('modalHargaJualUnit').textContent = formatRupiah(item.hargaJualUnit);
+            document.getElementById('modalTotalJual').textContent = formatRupiah(item.totalJual);
+            document.getElementById('modalOngkir').textContent = "- " + formatRupiah(item.ongkir);
+            document.getElementById('modalKasBersih').textContent = formatRupiah(item.totalJual - item.ongkir);
+            document.getElementById('modalLabaBersih').textContent = formatRupiah(item.labaBersih);
+            boxJual.style.display = 'block';
+        } else {
+            boxJual.style.display = 'none';
+        }
+
+        const btnAman = document.getElementById('btnAman');
+        const btnReturn = document.getElementById('btnReturn');
+        const btnHapus = document.getElementById('btnHapusPage2Only');
+        const noticeTxt = document.getElementById('statusChangeNotice');
+
+        if (fromPage === 1) {
+            btnAman.style.display = 'none';
+            btnReturn.style.display = 'none';
+            btnHapus.style.display = 'none';
+            noticeTxt.style.display = 'block';
+        } else {
+            btnAman.style.display = item.isSold ? 'none' : 'inline-flex';
+            btnReturn.style.display = item.isSold ? 'none' : 'inline-flex';
+            btnHapus.style.display = 'inline-flex';
+            noticeTxt.style.display = 'none';
+        }
+
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+        selectedIndex = null;
+    }
+
+    function updateStatusVerifikasi(status) {
+        if (selectedIndex !== null) {
+            dbOrders[selectedIndex].statusVerifikasi = status;
+            saveData();
+            closeDetailModal();
+            if (currentPage === 2) renderDataList();
+            alert(`✅ Status verifikasi berhasil diubah menjadi: ${status}`);
+        }
+    }
+
+    function hapusDataPemesanan() {
+        if (selectedIndex !== null) {
+            const item = dbOrders[selectedIndex];
+            if (confirm(`Yakin ingin menghapus data ${item.noPesanan}?`)) {
+                saldoToko += item.totalHargaBeli;
+                if (item.isSold) {
+                    saldoToko -= (item.totalJual - item.ongkir);
+                }
+                dbOrders.splice(selectedIndex, 1);
+                saveData();
+                closeDetailModal();
+                if (currentPage === 2) renderDataList();
+                alert(`🗑️ Data berhasil dihapus! Saldo Kas Toko disesuaikan kembali.`);
+            }
+        }
+    }
+
+    function renderDataList() {
+        const container = document.getElementById('dataListContainer');
+        const searchQuery = document.getElementById('searchBar').value.toLowerCase().trim();
+        container.innerHTML = '';
+
+        let sumModal = 0;
+        let sumKebutuhan = 0;
+        let sumJual = 0;
+        let sumOngkir = 0;
+        let sumLaba = 0;
+
+        dbOrders.forEach(item => {
+            if (item.tipe === 'kebutuhan') {
+                sumKebutuhan += item.totalHargaBeli;
+            } else if (item.isSold) {
+                sumModal += item.totalHargaBeli;
+                sumJual += item.totalJual;
+                sumOngkir += item.ongkir;
+                sumLaba += item.labaBersih;
+            }
+        });
+
+        // Pengeluaran kebutuhan toko mengurangi total laba bersih toko
+        const labaAkhirToko = sumLaba - sumKebutuhan;
+
+        let filteredOrders = dbOrders.map((item, originalIndex) => ({ ...item, originalIndex }))
+            .filter(item => {
+                return item.noPesanan.toLowerCase().includes(searchQuery) ||
+                       (item.resi && item.resi.toLowerCase().includes(searchQuery)) ||
+                       item.nama.toLowerCase().includes(searchQuery);
+            });
+
+        filteredOrders.sort((a, b) => b.id - a.id);
+
+        if (filteredOrders.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color: var(--text-muted);">Data tidak ditemukan.</p>';
+        } else {
+            filteredOrders.forEach((item) => {
+                const index = item.originalIndex;
+                const isResiVerified = item.isScanned;
+                const isStatusAman = item.statusVerifikasi === 'Aman';
+                const isKebutuhan = item.tipe === 'kebutuhan';
+
+                let cardColorClass = 'card-new-order'; 
+                let statusLabelText = 'Pesanan Baru';
+                let badgeVerifikasiClass = 'badge-new';
+
+                if (isKebutuhan) {
+                    cardColorClass = 'card-kebutuhan';
+                    statusLabelText = '🧹 Kebutuhan Toko';
+                    badgeVerifikasiClass = 'badge-kebutuhan';
+                } else {
+                    if (isResiVerified && !isStatusAman && item.statusVerifikasi !== 'Return') {
+                        cardColorClass = 'card-resi-scanned';
+                        badgeVerifikasiClass = 'badge-scanned';
+                        statusLabelText = 'Resi Terdeteksi';
+                    }
+
+                    if (isStatusAman) {
+                        cardColorClass = 'card-aman';
+                        badgeVerifikasiClass = 'badge-aman';
+                        statusLabelText = '✅ Aman / Sesuai';
+                    } else if (item.statusVerifikasi === 'Return') {
+                        cardColorClass = 'card-return';
+                        badgeVerifikasiClass = 'badge-return';
+                        statusLabelText = '❌ Return';
+                    }
+
+                    if (item.isSold) {
+                        cardColorClass = 'card-sold';
+                    }
+                }
+
+                let soldStatus = isKebutuhan 
+                    ? `<span class="badge badge-kebutuhan">🧹 Non-Jual</span>`
+                    : (item.isSold 
+                        ? `<span class="badge badge-sold">🤝 Terjual</span>` 
+                        : `<span class="badge ${badgeVerifikasiClass}">${statusLabelText}</span>`);
+
+                let resiText = item.resi 
+                    ? `<span style="color: var(--gold-light); font-weight: 700;">${item.resi}</span>` 
+                    : `<span style="color: var(--danger); font-style: italic;">Belum Ada Resi</span>`;
+
+                let soldDetail = '';
+                if(item.isSold && !isKebutuhan) {
+                    soldDetail = `
+                        <div class="calc-box" style="font-size: 12px; margin-top: 8px;">
+                            <div>Total Jual Bersih (Masuk Kas): <b style="color:var(--success);">${formatRupiah(item.totalJual - item.ongkir)}</b> (${item.qty} x ${formatRupiah(item.hargaJualUnit)})</div>
+                            <div>Potongan Ongkir: <span style="color:var(--danger);">${formatRupiah(item.ongkir)}</span></div>
+                            <div style="color:var(--gold-light); font-weight:800; margin-top: 3px;">📈 Keuntungan Bersih: ${formatRupiah(item.labaBersih)}</div>
+                        </div>
+                    `;
+                }
+
+                let btnDetailHTML = (isResiVerified || item.isSold || isKebutuhan)
+                    ? `<button class="btn btn-outline-gold" style="padding: 6px; font-size: 11px;" onclick="bukaDetailVerifikasi(${index}, 2)">🔍 Detail</button>`
+                    : `<button class="btn btn-outline-gold" style="padding: 6px; font-size: 11px; opacity: 0.35; cursor: not-allowed;" disabled>🔒 Detail (Scan Dulu)</button>`;
+
+                let btnTerjualHTML = '';
+                if (isKebutuhan) {
+                    btnTerjualHTML = `<button class="btn btn-gold" style="padding: 6px; font-size: 11px; opacity: 0.35; cursor: not-allowed;" disabled title="Barang Kebutuhan tidak dapat dijual">🚫 Non-Jual</button>`;
+                } else if (!item.isSold) {
+                    if (isStatusAman) {
+                        btnTerjualHTML = `<button class="btn btn-gold" style="padding: 6px; font-size: 11px;" onclick="openJualModal(${index})">💰 Terjual</button>`;
+                    } else {
+                        btnTerjualHTML = `<button class="btn btn-gold" style="padding: 6px; font-size: 11px; opacity: 0.35; cursor: not-allowed;" disabled title="Pilih status AMAN di Detail lebih dulu">🔒 Terjual (Cek Aman Dulu)</button>`;
+                    }
+                } else {
+                    btnTerjualHTML = '<div></div>';
+                }
+
+                container.innerHTML += `
+                    <div class="item-card ${cardColorClass}">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <div style="font-weight: 800; font-size: 15px; color: var(--gold-light);">${item.noPesanan}</div>
+                                <div style="font-size: 13px; color: #fff; margin-top: 2px;"><b>Item:</b> ${item.nama} (${item.qty} Unit/Pcs)</div>
+                                <div style="font-size: 11px; color: ${isKebutuhan ? '#f59e0b' : 'var(--gold-light)'}; font-weight:700;"><b>Tipe:</b> ${isKebutuhan ? '🧹 Kebutuhan Toko (Pengeluaran)' : '📦 Barang Dagangan'}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);"><b>Tanggal:</b> ${item.tanggal}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);"><b>No Resi:</b> ${resiText}</div>
+                                <div style="font-size: 12px; color: var(--gold-light); margin-top: 3px;"><b>Total Beli:</b> ${formatRupiah(item.totalHargaBeli)}</div>
+                            </div>
+                            <div style="text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+                                ${soldStatus}
+                            </div>
+                        </div>
+                        ${soldDetail}
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px;">
+                            ${btnDetailHTML}
+                            ${btnTerjualHTML}
+                            <button class="btn btn-danger" style="padding: 6px; font-size: 11px;" onclick="hapusOrderPage2(${index})">
+                                🗑️ Hapus
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('sumTotalModal').textContent = formatRupiah(sumModal);
+        document.getElementById('sumTotalKebutuhan').textContent = formatRupiah(sumKebutuhan);
+        document.getElementById('sumTotalJual').textContent = formatRupiah(sumJual);
+        document.getElementById('sumTotalOngkir').textContent = formatRupiah(sumOngkir);
+        document.getElementById('sumLabaBersih').textContent = formatRupiah(labaAkhirToko);
+    }
+
+    function openJualModal(index) {
+        selectedIndex = index;
+        const item = dbOrders[index];
+
+        if (item.tipe === 'kebutuhan') {
+            alert('🚫 Barang Kebutuhan Toko tidak bisa dijual!');
+            return;
+        }
+
+        document.getElementById('jualNoPesanan').textContent = item.noPesanan;
+        document.getElementById('jualNamaBarang').textContent = item.nama;
+        document.getElementById('jualQty').textContent = item.qty;
+        document.getElementById('jualTotalBeliText').textContent = formatRupiah(item.totalHargaBeli);
+
+        document.getElementById('jualHargaUnit').value = '';
+        document.getElementById('jualOngkir').value = 10000;
+
+        hitungKalkulasiKeuntungan();
+        document.getElementById('jualModal').style.display = 'flex';
+    }
+
+    function closeJualModal() {
+        document.getElementById('jualModal').style.display = 'none';
+        selectedIndex = null;
+    }
+
+    function hitungKalkulasiKeuntungan() {
+        if(selectedIndex === null) return;
+        const item = dbOrders[selectedIndex];
+
+        const hargaJualUnit = parseFloat(document.getElementById('jualHargaUnit').value) || 0;
+        const ongkir = parseFloat(document.getElementById('jualOngkir').value) || 0;
+
+        const totalJual = item.qty * hargaJualUnit;
+        const kasMasukBersih = totalJual - ongkir;
+        const labaKotor = totalJual - item.totalHargaBeli;
+        const labaBersih = labaKotor - ongkir;
+
+        document.getElementById('calcTotalJual').textContent = "+ " + formatRupiah(totalJual);
+        document.getElementById('calcOngkir').textContent = " - " + formatRupiah(ongkir);
+        document.getElementById('calcPenjualanBersih').textContent = "+ " + formatRupiah(kasMasukBersih);
+        document.getElementById('calcModalBeli').textContent = " - " + formatRupiah(item.totalHargaBeli);
+        document.getElementById('calcLabaBersih').textContent = formatRupiah(labaBersih);
+    }
+
+    function simpanPenjualan() {
+        if(selectedIndex === null) return;
+
+        const hargaJualUnit = parseFloat(document.getElementById('jualHargaUnit').value) || 0;
+        const ongkir = parseFloat(document.getElementById('jualOngkir').value) || 0;
+
+        if(hargaJualUnit <= 0) {
+            alert('Masukkan harga jual per karton yang valid!');
+            return;
+        }
+
+        const item = dbOrders[selectedIndex];
+        const totalJual = item.qty * hargaJualUnit;
+        const labaKotor = totalJual - item.totalHargaBeli;
+        const labaBersih = labaKotor - ongkir;
+
+        item.isSold = true;
+        item.hargaJualUnit = hargaJualUnit;
+        item.totalJual = totalJual;
+        item.ongkir = ongkir;
+        item.labaBersih = labaBersih;
+
+        const kasMasukBersih = totalJual - ongkir;
+        saldoToko += kasMasukBersih;
+
+        saveData();
+        closeJualModal();
+        renderDataList();
+        alert(`🎉 Penjualan berhasil disimpan!\n💵 Kas Toko bertambah: ${formatRupiah(kasMasukBersih)}`);
+    }
+
+    function hapusOrderPage2(index) {
+        const item = dbOrders[index];
+        if(confirm(`Yakin ingin menghapus data ${item.noPesanan}?`)) {
+            saldoToko += item.totalHargaBeli;
+            if (item.isSold && item.tipe !== 'kebutuhan') {
+                saldoToko -= (item.totalJual - item.ongkir);
+            }
+            dbOrders.splice(index, 1);
+            saveData();
+            renderDataList();
+            alert(`🗑️ Data dihapus! Saldo Kas Toko disesuaikan kembali.`);
+        }
+    }
+
+    function toggleCamera() {
+        if (!isCameraActive) {
+            document.getElementById('scanner-container').style.display = 'block';
+            document.getElementById('camBtnText').textContent = 'Tutup Kamera';
+            startCamera();
+        } else {
+            stopCamera();
+        }
+    }
+
+    function startCamera() {
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { fps: 15, qrbox: { width: 250, height: 150 } };
+
+        html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
+            handleScanResult(decodedText.trim());
+        }).catch(err => {
+            showScanError("Gagal membuka kamera.");
+        });
+        isCameraActive = true;
+    }
+    
+    function stopCamera() {
+        if (html5QrCode && isCameraActive) {
+            html5QrCode.stop().then(() => {
+                isCameraActive = false;
+                document.getElementById('scanner-container').style.display = 'none';
+                document.getElementById('camBtnText').textContent = 'Buka Kamera Scan';
+            }).catch(err => console.error(err));
+        }
+    }
+
+    function showScanError(msg) {
+        const alertElem = document.getElementById('scanAlert');
+        alertElem.textContent = msg;
+        alertElem.style.display = 'block';
+        setTimeout(() => { alertElem.style.display = 'none'; }, 3500);
+    }
+
+    saveData();
+</script>
+
+</body>
+</html>
